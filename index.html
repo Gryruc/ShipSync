@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCGPlayer Label Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 48px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: #1a202c;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: #718096;
+            line-height: 1.6;
+        }
+
+        .upload-area {
+            border: 3px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+            margin-bottom: 32px;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e6f2ff;
+            transform: scale(1.02);
+        }
+
+        .upload-area.file-selected {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #a0aec0;
+        }
+
+        .upload-area.file-selected .upload-icon {
+            color: #48bb78;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .upload-subtext {
+            font-size: 14px;
+            color: #a0aec0;
+        }
+
+        .file-name {
+            display: none;
+            margin-top: 16px;
+            padding: 12px 20px;
+            background: white;
+            border-radius: 8px;
+            color: #2d3748;
+            font-weight: 500;
+            border: 1px solid #e2e8f0;
+        }
+
+        .file-name.show {
+            display: block;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .instructions {
+            margin-bottom: 32px;
+        }
+
+        .instructions-header {
+            cursor: pointer;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s ease;
+        }
+
+        .instructions-header:hover {
+            background: #edf2f7;
+        }
+
+        .instructions-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .instructions-arrow {
+            font-size: 20px;
+            color: #718096;
+            transition: transform 0.3s ease;
+        }
+
+        .instructions-arrow.expanded {
+            transform: rotate(180deg);
+        }
+
+        .instructions-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .instructions-content.show {
+            max-height: 500px;
+            padding: 20px 16px;
+        }
+
+        .instructions-content ol {
+            padding-left: 20px;
+        }
+
+        .instructions-content li {
+            margin-bottom: 12px;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .save-address-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 32px;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .save-address-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .save-address-checkbox label {
+            font-size: 14px;
+            color: #4a5568;
+            cursor: pointer;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            background: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 32px;
+            gap: 12px;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #a0aec0;
+        }
+
+        .progress-circle.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .progress-circle.completed {
+            background: #48bb78;
+            color: white;
+        }
+
+        .progress-line {
+            width: 60px;
+            height: 2px;
+            background: #e2e8f0;
+        }
+
+        .progress-line.completed {
+            background: #48bb78;
+        }
+
+        /* Order Processing Styles */
+        .order-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .order-summary-item {
+            text-align: center;
+        }
+
+        .order-summary-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .order-summary-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .orders-container {
+            margin-bottom: 80px;
+        }
+
+        .order-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .order-card:hover {
+            border-color: #cbd5e0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .order-card.completed {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-number {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .order-details {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .customer-info {
+            flex: 1;
+        }
+
+        .customer-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .customer-address {
+            font-size: 13px;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .order-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #718096;
+        }
+
+        .order-status.complete {
+            color: #48bb78;
+        }
+
+        .status-icon {
+            font-size: 18px;
+        }
+
+        .order-inputs {
+            display: grid;
+            grid-template-columns: 80px 80px 80px 80px 80px 140px 180px;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .order-input {
+            padding: 10px 12px;
+            font-size: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .order-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .order-select {
+            padding: 10px 12px;
+            font-size: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            cursor: pointer;
+            background: white;
+        }
+
+        .order-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .sticky-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 2px solid #e2e8f0;
+            padding: 20px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .sticky-footer .btn {
+            width: auto;
+            min-width: 200px;
+        }
+
+        @media (max-width: 1024px) {
+            .order-inputs {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .input-group:nth-child(5),
+            .input-group:nth-child(6) {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Progress Indicator -->
+        <div class="progress-indicator">
+            <div class="progress-step">
+                <div class="progress-circle completed" id="step1">1</div>
+            </div>
+            <div class="progress-line completed" id="line1"></div>
+            <div class="progress-step">
+                <div class="progress-circle completed" id="step2">2</div>
+            </div>
+            <div class="progress-line" id="line2"></div>
+            <div class="progress-step">
+                <div class="progress-circle active" id="step3">3</div>
+            </div>
+        </div>
+
+        <!-- Section 1: Upload CSV -->
+        <div class="section" id="uploadSection">
+            <div class="header">
+                <h1>TCGPlayer Label Generator</h1>
+                <p>Upload your TCGPlayer orders CSV and generate shipping labels for EasyPost in seconds</p>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon" id="uploadIcon">📁</div>
+                <div class="upload-text">Drop your TCGPlayer CSV here or click to browse</div>
+                <div class="upload-subtext">Supports .csv files</div>
+                <div class="file-name" id="fileName"></div>
+            </div>
+            <input type="file" id="fileInput" class="file-input" accept=".csv">
+
+            <div class="instructions">
+                <div class="instructions-header" id="instructionsHeader">
+                    <span class="instructions-title">📋 How to export from TCGPlayer</span>
+                    <span class="instructions-arrow" id="instructionsArrow">▼</span>
+                </div>
+                <div class="instructions-content" id="instructionsContent">
+                    <ol>
+                        <li>Log in to your TCGPlayer Seller Portal</li>
+                        <li>Navigate to "Orders" in the main menu</li>
+                        <li>Select the orders you want to ship</li>
+                        <li>Click "Export" and choose CSV format</li>
+                        <li>Save the file to your computer</li>
+                        <li>Upload it here to get started!</li>
+                    </ol>
+                </div>
+            </div>
+
+            <button class="btn" id="continueToAddress" disabled>Continue to Shipping Address</button>
+        </div>
+
+        <!-- Section 2: Shipping Address -->
+        <div class="section" id="addressSection">
+            <div class="header">
+                <h1>Shipping Address</h1>
+                <p>Enter your return address for the shipping labels</p>
+            </div>
+
+            <form id="addressForm">
+                <div class="form-group">
+                    <label class="form-label" for="fullName">Full Name *</label>
+                    <input type="text" id="fullName" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="company">Company Name (Optional)</label>
+                    <input type="text" id="company" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="address1">Address Line 1 *</label>
+                    <input type="text" id="address1" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="address2">Address Line 2 (Optional)</label>
+                    <input type="text" id="address2" class="form-input">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="city">City *</label>
+                        <input type="text" id="city" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="state">State *</label>
+                        <input type="text" id="state" class="form-input" placeholder="CA" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="zipCode">ZIP Code *</label>
+                        <input type="text" id="zipCode" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="country">Country *</label>
+                        <input type="text" id="country" class="form-input" value="US" required>
+                    </div>
+                </div>
+
+                <div class="save-address-checkbox">
+                    <input type="checkbox" id="saveAddress" checked>
+                    <label for="saveAddress">Save this address for future use</label>
+                </div>
+
+                <button type="submit" class="btn" id="continueToOrders">Continue to Orders</button>
+                <button type="button" class="btn btn-secondary" id="backToUpload">Back</button>
+            </form>
+        </div>
+
+        <!-- Section 3: Order Processing -->
+        <div class="section" id="orderSection">
+            <div class="header">
+                <h1>Process Orders</h1>
+                <p>Enter shipping details for each order</p>
+            </div>
+
+            <div class="order-summary">
+                <div class="order-summary-item">
+                    <div class="order-summary-label">Total Orders</div>
+                    <div class="order-summary-value" id="totalOrders">0</div>
+                </div>
+                <div class="order-summary-item">
+                    <div class="order-summary-label">Completed</div>
+                    <div class="order-summary-value" id="completedOrders">0</div>
+                </div>
+                <div class="order-summary-item">
+                    <div class="order-summary-label">Remaining</div>
+                    <div class="order-summary-value" id="remainingOrders">0</div>
+                </div>
+            </div>
+
+            <div class="orders-container" id="ordersContainer">
+                <!-- Orders will be dynamically generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Footer (shown only in order section) -->
+    <div class="sticky-footer" id="stickyFooter" style="display: none;">
+        <button class="btn btn-secondary" id="backToAddressFooter">Back to Address</button>
+        <button class="btn" id="exportBtn" disabled>Export to EasyPost CSV</button>
+    </div>
+
+    <script>
+        // Data storage
+        let uploadedFile = null;
+        let shippingAddress = null;
+        let orders = [];
+        let orderData = {};
+
+        // Carrier and service options
+        const serviceOptions = {
+            'USPS': [
+                { display: 'First Class Letter (1-5 Days)', value: 'First', package: 'Letter' },
+                { display: 'Ground Advantage (2-5 Days)', value: 'GroundAdvantage', package: '' },
+                { display: 'Priority (1-3 Days)', value: 'Priority', package: '' },
+                { display: 'Express (1-2 Days)', value: 'Express', package: '' }
+            ],
+            'UPS': [
+                { display: 'Ground (1-5 Days)', value: 'Ground', package: '' },
+                { display: 'Express (1-3 Days)', value: 'Express', package: '' },
+                { display: 'Next Day Air (Next Day by 10:30 AM)', value: 'NextDayAir', package: '' },
+                { display: 'Next Day Air Saver (Next Day by 3:00 PM)', value: 'NextDayAirSaver', package: '' }
+            ],
+            'FedEx': [
+                { display: 'Ground (1-6 Days)', value: 'FEDEX_GROUND', package: '' },
+                { display: '2 Day', value: 'FEDEX_2_DAY', package: '' },
+                { display: 'Express Saver (3 Days)', value: 'FEDEX_EXPRESS_SAVER', package: '' }
+            ]
+        };
+
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const uploadIcon = document.getElementById('uploadIcon');
+        const continueToAddress = document.getElementById('continueToAddress');
+        const instructionsHeader = document.getElementById('instructionsHeader');
+        const instructionsContent = document.getElementById('instructionsContent');
+        const instructionsArrow = document.getElementById('instructionsArrow');
+
+        const uploadSection = document.getElementById('uploadSection');
+        const addressSection = document.getElementById('addressSection');
+        const orderSection = document.getElementById('orderSection');
+
+        const addressForm = document.getElementById('addressForm');
+        const continueToOrders = document.getElementById('continueToOrders');
+        const backToUpload = document.getElementById('backToUpload');
+        const backToAddressFooter = document.getElementById('backToAddressFooter');
+
+        const ordersContainer = document.getElementById('ordersContainer');
+        const stickyFooter = document.getElementById('stickyFooter');
+        const exportBtn = document.getElementById('exportBtn');
+
+        const totalOrdersEl = document.getElementById('totalOrders');
+        const completedOrdersEl = document.getElementById('completedOrders');
+        const remainingOrdersEl = document.getElementById('remainingOrders');
+
+        // Progress indicators
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const line1 = document.getElementById('line1');
+        const line2 = document.getElementById('line2');
+
+        // Initialize - show upload section
+        uploadSection.classList.add('active');
+
+        // Load saved address from localStorage if available
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedAddress = localStorage.getItem('shippingAddress');
+            if (savedAddress) {
+                const address = JSON.parse(savedAddress);
+                document.getElementById('fullName').value = address.fullName || '';
+                document.getElementById('company').value = address.company || '';
+                document.getElementById('address1').value = address.address1 || '';
+                document.getElementById('address2').value = address.address2 || '';
+                document.getElementById('city').value = address.city || '';
+                document.getElementById('state').value = address.state || '';
+                document.getElementById('zipCode').value = address.zipCode || '';
+                document.getElementById('country').value = address.country || 'US';
+            }
+        });
+
+        // Upload area interactions
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        function handleFile(file) {
+            if (file && file.name.endsWith('.csv')) {
+                uploadedFile = file;
+                uploadArea.classList.add('file-selected');
+                uploadIcon.textContent = '✓';
+                fileName.textContent = `Selected: ${file.name}`;
+                fileName.classList.add('show');
+                continueToAddress.disabled = false;
+            } else {
+                alert('Please upload a valid CSV file');
+            }
+        }
+
+        // Instructions accordion
+        instructionsHeader.addEventListener('click', () => {
+            instructionsContent.classList.toggle('show');
+            instructionsArrow.classList.toggle('expanded');
+        });
+
+        // Navigation: Upload -> Address
+        continueToAddress.addEventListener('click', () => {
+            uploadSection.classList.remove('active');
+            addressSection.classList.add('active');
+            updateProgress(2);
+        });
+
+        // Navigation: Address -> Orders
+        addressForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            console.log('Form submitted');
+            
+            // Collect address data
+            shippingAddress = {
+                fullName: document.getElementById('fullName').value,
+                company: document.getElementById('company').value,
+                address1: document.getElementById('address1').value,
+                address2: document.getElementById('address2').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                zipCode: document.getElementById('zipCode').value,
+                country: document.getElementById('country').value
+            };
+
+            console.log('Address collected:', shippingAddress);
+
+            // Save to localStorage if checkbox is checked
+            if (document.getElementById('saveAddress').checked) {
+                localStorage.setItem('shippingAddress', JSON.stringify(shippingAddress));
+            }
+
+            // Check if file is uploaded
+            if (!uploadedFile) {
+                alert('No CSV file found. Please go back and upload a file.');
+                return;
+            }
+
+            console.log('Parsing CSV...');
+            
+            // Parse CSV and display orders
+            parseCSV();
+        });
+
+        // Navigation: Address -> Upload (back)
+        backToUpload.addEventListener('click', () => {
+            addressSection.classList.remove('active');
+            uploadSection.classList.add('active');
+            updateProgress(1);
+        });
+
+        // Navigation: Orders -> Address (back)
+        backToAddressFooter.addEventListener('click', () => {
+            orderSection.classList.remove('active');
+            addressSection.classList.add('active');
+            stickyFooter.style.display = 'none';
+            updateProgress(2);
+        });
+
+        // Parse CSV file
+        function parseCSV() {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                console.log('CSV loaded');
+                const text = e.target.result;
+                const lines = text.split('\n');
+                const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+                
+                console.log('Headers:', headers);
+                
+                orders = [];
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '') continue;
+                    
+                    const values = parseCSVLine(lines[i]);
+                    const order = {};
+                    headers.forEach((header, index) => {
+                        order[header] = values[index] || '';
+                    });
+                    orders.push(order);
+                }
+                
+                console.log('Orders parsed:', orders.length);
+                
+                renderOrders();
+                
+                // Navigate to orders section after rendering
+                addressSection.classList.remove('active');
+                orderSection.classList.add('active');
+                stickyFooter.style.display = 'flex';
+                updateProgress(3);
+            };
+            reader.onerror = (e) => {
+                console.error('Error reading file:', e);
+                alert('Error reading CSV file');
+            };
+            reader.readAsText(uploadedFile);
+        }
+
+        // Parse CSV line handling quotes
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            
+            return result;
+        }
+
+        // Render orders
+        function renderOrders() {
+            ordersContainer.innerHTML = '';
+            
+            orders.forEach((order, index) => {
+                const orderCard = document.createElement('div');
+                orderCard.className = 'order-card';
+                orderCard.id = `order-${index}`;
+                
+                orderCard.innerHTML = `
+                    <div class="order-header">
+                        <div class="order-info">
+                            <div class="order-number">Order #${order['Order #']}</div>
+                            <div class="order-details">
+                                ${order['Order Date']} • ${order['Item Count']} items • $${order['Value Of Products']}
+                            </div>
+                        </div>
+                        <div class="customer-info">
+                            <div class="customer-name">${order['FirstName']} ${order['LastName']}</div>
+                            <div class="customer-address">
+                                ${order['Address1']}${order['Address2'] ? ', ' + order['Address2'] : ''}<br>
+                                ${order['City']}, ${order['State']} ${order['PostalCode']}
+                            </div>
+                        </div>
+                        <div class="order-status" id="status-${index}">
+                            <span class="status-icon">⏱</span>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+                    <div class="order-inputs">
+                        <div class="input-group">
+                            <label class="input-label">Weight (lbs)</label>
+                            <input type="number" class="order-input" id="weight-lbs-${index}" step="1" min="0" placeholder="0">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Weight (oz)</label>
+                            <input type="number" class="order-input" id="weight-oz-${index}" step="0.1" min="0" max="15.9" placeholder="0.0">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Length (in)</label>
+                            <input type="number" class="order-input" id="length-${index}" step="0.1" min="0" placeholder="0.0">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Width (in)</label>
+                            <input type="number" class="order-input" id="width-${index}" step="0.1" min="0" placeholder="0.0">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Height (in)</label>
+                            <input type="number" class="order-input" id="height-${index}" step="0.1" min="0" placeholder="0.0">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Carrier</label>
+                            <select class="order-select" id="carrier-${index}">
+                                <option value="">Select...</option>
+                                <option value="USPS" selected>USPS</option>
+                                <option value="UPS">UPS</option>
+                                <option value="FedEx">FedEx</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Service</label>
+                            <select class="order-select" id="service-${index}">
+                                <option value="">Select...</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                
+                ordersContainer.appendChild(orderCard);
+                
+                // Initialize carrier change handler
+                const carrierSelect = document.getElementById(`carrier-${index}`);
+                const serviceSelect = document.getElementById(`service-${index}`);
+                const weightLbsInput = document.getElementById(`weight-lbs-${index}`);
+                const weightOzInput = document.getElementById(`weight-oz-${index}`);
+                
+                carrierSelect.addEventListener('change', () => {
+                    updateServiceOptions(index, carrierSelect.value);
+                    checkOrderComplete(index);
+                });
+                
+                // Update service options when weight changes (for USPS First Class Letter restriction)
+                weightLbsInput.addEventListener('input', () => {
+                    if (carrierSelect.value === 'USPS') {
+                        updateServiceOptions(index, 'USPS');
+                    }
+                    checkOrderComplete(index);
+                });
+                
+                weightOzInput.addEventListener('input', () => {
+                    if (carrierSelect.value === 'USPS') {
+                        updateServiceOptions(index, 'USPS');
+                    }
+                    checkOrderComplete(index);
+                });
+                
+                // Initialize service options for default carrier (USPS)
+                updateServiceOptions(index, 'USPS');
+                
+                // Add change listeners to all inputs
+                ['length', 'width', 'height', 'service'].forEach(field => {
+                    document.getElementById(`${field}-${index}`).addEventListener('change', () => {
+                        checkOrderComplete(index);
+                    });
+                });
+            });
+            
+            updateOrderSummary();
+        }
+
+        // Update service options based on carrier
+        function updateServiceOptions(orderIndex, carrier) {
+            const serviceSelect = document.getElementById(`service-${orderIndex}`);
+            const weightLbs = parseFloat(document.getElementById(`weight-lbs-${orderIndex}`).value) || 0;
+            const weightOz = parseFloat(document.getElementById(`weight-oz-${orderIndex}`).value) || 0;
+            const totalOz = (weightLbs * 16) + weightOz;
+            
+            serviceSelect.innerHTML = '<option value="">Select...</option>';
+            
+            if (carrier && serviceOptions[carrier]) {
+                serviceOptions[carrier].forEach(service => {
+                    // Skip First Class Letter if weight > 3 oz
+                    if (service.value === 'First' && totalOz > 3) {
+                        return;
+                    }
+                    
+                    const option = document.createElement('option');
+                    option.value = service.value;
+                    option.textContent = service.display;
+                    option.dataset.package = service.package;
+                    serviceSelect.appendChild(option);
+                });
+                
+                // Auto-select first available option
+                if (serviceSelect.options.length > 1) {
+                    serviceSelect.selectedIndex = 1;
+                }
+            }
+        }
+
+        // Check if order is complete
+        function checkOrderComplete(orderIndex) {
+            const weightLbs = document.getElementById(`weight-lbs-${orderIndex}`).value;
+            const weightOz = document.getElementById(`weight-oz-${orderIndex}`).value;
+            const length = document.getElementById(`length-${orderIndex}`).value;
+            const width = document.getElementById(`width-${orderIndex}`).value;
+            const height = document.getElementById(`height-${orderIndex}`).value;
+            const carrier = document.getElementById(`carrier-${orderIndex}`).value;
+            const serviceSelect = document.getElementById(`service-${orderIndex}`);
+            const service = serviceSelect.value;
+            
+            // Calculate total weight in ounces
+            const totalWeightOz = (parseFloat(weightLbs) || 0) * 16 + (parseFloat(weightOz) || 0);
+            
+            const isComplete = totalWeightOz > 0 && length && width && height && carrier && service;
+            
+            const orderCard = document.getElementById(`order-${orderIndex}`);
+            const statusEl = document.getElementById(`status-${orderIndex}`);
+            
+            if (isComplete) {
+                orderCard.classList.add('completed');
+                statusEl.innerHTML = '<span class="status-icon">✓</span><span>Complete</span>';
+                statusEl.classList.add('complete');
+                
+                // Get predefined package from selected service
+                const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+                const predefinedPackage = selectedOption.dataset.package || '';
+                
+                // Store order data
+                orderData[orderIndex] = {
+                    order: orders[orderIndex],
+                    weight: totalWeightOz,
+                    length,
+                    width,
+                    height,
+                    carrier,
+                    service,
+                    predefinedPackage
+                };
+            } else {
+                orderCard.classList.remove('completed');
+                statusEl.innerHTML = '<span class="status-icon">⏱</span><span>Pending</span>';
+                statusEl.classList.remove('complete');
+                delete orderData[orderIndex];
+            }
+            
+            updateOrderSummary();
+        }
+
+        // Update order summary
+        function updateOrderSummary() {
+            const total = orders.length;
+            const completed = Object.keys(orderData).length;
+            const remaining = total - completed;
+            
+            totalOrdersEl.textContent = total;
+            completedOrdersEl.textContent = completed;
+            remainingOrdersEl.textContent = remaining;
+            
+            // Enable export button if all orders are complete
+            exportBtn.disabled = completed !== total || total === 0;
+        }
+
+        // Export to CSV
+        exportBtn.addEventListener('click', () => {
+            // Generate EasyPost CSV
+            const csvRows = [];
+            
+            // Add header for EasyPost
+            csvRows.push([
+                'to_address.name',
+                'to_address.company',
+                'to_address.phone',
+                'to_address.email',
+                'to_address.street1',
+                'to_address.street2',
+                'to_address.city',
+                'to_address.state',
+                'to_address.zip',
+                'to_address.country',
+                'from_address.name',
+                'from_address.company',
+                'from_address.phone',
+                'from_address.email',
+                'from_address.street1',
+                'from_address.street2',
+                'from_address.city',
+                'from_address.state',
+                'from_address.zip',
+                'from_address.country',
+                'parcel.length',
+                'parcel.width',
+                'parcel.height',
+                'parcel.weight',
+                'parcel.predefined_package',
+                'options.label_size',
+                'carrier',
+                'service'
+            ].join(','));
+            
+            // Add order data
+            Object.values(orderData).forEach(data => {
+                const order = data.order;
+                const row = [
+                    `"${order['FirstName']} ${order['LastName']}"`, // to_address.name
+                    '""', // to_address.company
+                    '""', // to_address.phone
+                    '""', // to_address.email
+                    `"${order['Address1']}"`, // to_address.street1
+                    `"${order['Address2']}"`, // to_address.street2
+                    `"${order['City']}"`, // to_address.city
+                    `"${order['State']}"`, // to_address.state
+                    `"${order['PostalCode']}"`, // to_address.zip
+                    `"${order['Country']}"`, // to_address.country
+                    `"${shippingAddress.fullName}"`, // from_address.name
+                    `"${shippingAddress.company}"`, // from_address.company
+                    '""', // from_address.phone
+                    '""', // from_address.email
+                    `"${shippingAddress.address1}"`, // from_address.street1
+                    `"${shippingAddress.address2}"`, // from_address.street2
+                    `"${shippingAddress.city}"`, // from_address.city
+                    `"${shippingAddress.state}"`, // from_address.state
+                    `"${shippingAddress.zipCode}"`, // from_address.zip
+                    `"${shippingAddress.country}"`, // from_address.country
+                    data.length, // parcel.length
+                    data.width, // parcel.width
+                    data.height, // parcel.height
+                    data.weight, // parcel.weight (in ounces)
+                    `"${data.predefinedPackage}"`, // parcel.predefined_package
+                    '"4x6"', // options.label_size
+                    `"${data.carrier}"`, // carrier (USPS, UPS, FedEx)
+                    `"${data.service}"` // service (mapped value)
+                ];
+                csvRows.push(row.join(','));
+            });
+            
+            // Create download
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'easypost_labels.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            alert('CSV exported successfully! You can now upload this to EasyPost.');
+        });
+
+        // Update progress indicator
+        function updateProgress(currentStep) {
+            // Reset all
+            step1.classList.remove('active', 'completed');
+            step2.classList.remove('active', 'completed');
+            step3.classList.remove('active', 'completed');
+            line1.classList.remove('completed');
+            line2.classList.remove('completed');
+
+            // Set completed and active states
+            if (currentStep === 1) {
+                step1.classList.add('active');
+            }
+            if (currentStep === 2) {
+                step1.classList.add('completed');
+                step2.classList.add('active');
+                line1.classList.add('completed');
+            }
+            if (currentStep === 3) {
+                step1.classList.add('completed');
+                step2.classList.add('completed');
+                step3.classList.add('active');
+                line1.classList.add('completed');
+                line2.classList.add('completed');
+            }
+        }
+        
+        // Initialize progress on load
+        updateProgress(1);
+    </script>
+</body>
+</html>
